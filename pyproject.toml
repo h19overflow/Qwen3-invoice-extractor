@@ -1,0 +1,52 @@
+[project]
+name = "qwen3-invoice-extractor"
+version = "0.1.0"
+description = "High-precision invoice extraction pipeline using Qwen3 with hybrid local training and serverless inference"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Core
+    "pydantic>=2.0.0",
+
+    # Ingestion (PDF parsing)
+    "langchain>=0.3.0",
+    "langchain-community>=0.3.0",
+    "pypdf>=4.0.0",
+    "pdf2image>=1.16.0",
+    "pytesseract>=0.3.10",
+
+    # Inference client
+    "boto3>=1.34.0",
+]
+
+[project.optional-dependencies]
+training = [
+    # Training dependencies (local GPU only)
+    "unsloth>=2024.0",
+    "transformers>=4.40.0",
+    "trl>=0.8.0",
+    "datasets>=2.18.0",
+    "torch>=2.1.0",
+]
+deployment = [
+    # SageMaker deployment
+    "sagemaker>=2.200.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
