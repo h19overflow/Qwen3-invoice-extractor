@@ -1,8 +1,8 @@
 """
-Data preparation - Combines HuggingFace datasets into training format.
+Phase 1: Data Preparation - Download and format HuggingFace datasets.
 
 Dependencies: datasets
-Role: Downloads and merges invoice datasets into ChatML train.jsonl format.
+Role: Downloads invoice datasets and converts to ChatML train.jsonl format.
 
 Data Sources:
     - mychen76/invoices-and-receipts_ocr_v1: OCR text + parsed JSON
@@ -14,7 +14,7 @@ import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from .prompt_template import SYSTEM_PROMPT
+from ..utils import SYSTEM_PROMPT, DataValidator
 
 
 class DatasetAdapter(ABC):
@@ -73,10 +73,8 @@ class MyChen76Adapter(DatasetAdapter):
 
             # The json field contains a string with single quotes - fix it
             if isinstance(json_str, str):
-                # Replace single quotes with double quotes for valid JSON
                 json_str = json_str.replace("'", '"')
-                # Validate it's proper JSON
-                json.loads(json_str)
+                json.loads(json_str)  # Validate
                 return input_text, json_str
 
         except (json.JSONDecodeError, SyntaxError, TypeError):
@@ -109,44 +107,14 @@ class Shubh303Adapter(DatasetAdapter):
         json_output = re.sub(r"^```json\s*", "", json_output)
         json_output = re.sub(r"\s*```$", "", json_output)
 
-        # Use the question as input (it describes what to extract)
         return question.strip(), json_output.strip()
-
-
-class DataValidator:
-    """Validates training examples before inclusion."""
-
-    MIN_TEXT_LENGTH = 10
-
-    @staticmethod
-    def is_valid_json(text: str) -> bool:
-        """Check if text is valid JSON."""
-        try:
-            json.loads(text)
-            return True
-        except (json.JSONDecodeError, TypeError):
-            return False
-
-    def is_valid_example(self, text: str | None, json_output: str | None) -> bool:
-        """
-        Validate a training example.
-
-        Filters:
-            - Empty or too short text
-            - Invalid JSON output
-        """
-        if not text or len(text.strip()) < self.MIN_TEXT_LENGTH:
-            return False
-        if not json_output or not self.is_valid_json(json_output):
-            return False
-        return True
 
 
 class TrainingDataPreparer:
     """
-    Prepares training data by combining multiple HuggingFace datasets.
+    Phase 1: Prepare training data from HuggingFace datasets.
 
-    Outputs ChatML format:
+    Downloads datasets, validates examples, and outputs ChatML format:
         {"messages": [
             {"role": "system", "content": "..."},
             {"role": "user", "content": "..."},
@@ -199,9 +167,9 @@ class TrainingDataPreparer:
         print(f"  Loaded {len(examples)} examples, skipped {skipped} invalid")
         return examples
 
-    def prepare(self, output_path: str | Path = "train.jsonl") -> Path:
+    def prepare(self, output_path: str | Path = "data/train.jsonl") -> Path:
         """
-        Download datasets, combine, and save as train.jsonl.
+        Execute Phase 1: Download datasets and create train.jsonl.
 
         Args:
             output_path: Path for output JSONL file.
@@ -210,8 +178,6 @@ class TrainingDataPreparer:
             Path to created training file.
         """
         output_path = Path(output_path)
-
-        # Create parent directories if needed
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         all_examples = []
@@ -226,5 +192,5 @@ class TrainingDataPreparer:
             for example in all_examples:
                 f.write(json.dumps(example, ensure_ascii=False) + "\n")
 
-        print(f"✅ Saved to {output_path}")
+        print(f"✅ Phase 1 complete: Saved to {output_path}")
         return output_path

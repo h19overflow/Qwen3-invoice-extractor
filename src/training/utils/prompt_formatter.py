@@ -1,7 +1,7 @@
 """
-Prompt templates for training and inference.
+Prompt formatting utilities for ChatML format.
 
-Role: Centralizes prompt formatting for consistency across pipeline.
+Role: Centralizes prompt formatting for consistency across training and inference.
 """
 
 SYSTEM_PROMPT = "You are a strict invoice parser. Output strictly valid JSON."

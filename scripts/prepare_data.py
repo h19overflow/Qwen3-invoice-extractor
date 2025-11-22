@@ -10,8 +10,11 @@ Usage:
 import argparse
 from pathlib import Path
 
-from src.training.dataset_loader import HuggingFaceDatasetLoader, INVOICE_DATASETS
-from src.training.data_preparation import TrainingDataPreparer
+from src.training import (
+    HuggingFaceDatasetLoader,
+    INVOICE_DATASETS,
+    TrainingDataPreparer,
+)
 
 
 def inspect_datasets() -> None:
@@ -46,7 +49,7 @@ def preview_dataset(dataset_name: str, num_examples: int = 3) -> None:
 def prepare_training_data(output_path: Path) -> None:
     """Download datasets and create train.jsonl."""
     print("=" * 60)
-    print("Preparing training data")
+    print("Phase 1: Preparing training data")
     print("=" * 60)
 
     preparer = TrainingDataPreparer()

@@ -1,46 +1,16 @@
 """
-Dataset loader - Downloads invoice datasets from HuggingFace Hub.
+HuggingFace Hub dataset loader utility.
 
 Dependencies: huggingface_hub, datasets
-Role: Handles authentication and downloading of training datasets.
-
-Datasets:
-    - mychen76/invoices-and-receipts_ocr_v1: OCR text + parsed JSON
-    - shubh303/Invoice-to-Json: Question/answer format
+Role: Handles authentication, downloading, and inspection of HF datasets.
 """
 
-from dataclasses import dataclass
 from pathlib import Path
 
 from datasets import Dataset, load_dataset
 from huggingface_hub import HfApi, login
 
-
-@dataclass
-class DatasetInfo:
-    """Metadata for a HuggingFace dataset."""
-
-    name: str
-    description: str
-    text_source: str
-    json_source: str
-
-
-# Registry of supported datasets
-INVOICE_DATASETS: list[DatasetInfo] = [
-    DatasetInfo(
-        name="mychen76/invoices-and-receipts_ocr_v1",
-        description="OCR text from invoices with structured JSON output",
-        text_source="raw_data.ocr_words",
-        json_source="parsed_data.json",
-    ),
-    DatasetInfo(
-        name="shubh303/Invoice-to-Json",
-        description="Question/answer pairs for JSON extraction from receipts",
-        text_source="question",
-        json_source="answer",
-    ),
-]
+from ..configs import DatasetInfo, INVOICE_DATASETS
 
 
 class HuggingFaceDatasetLoader:
@@ -81,11 +51,7 @@ class HuggingFaceDatasetLoader:
         except Exception:
             return False
 
-    def load(
-        self,
-        dataset_name: str,
-        split: str = "train",
-    ) -> Dataset:
+    def load(self, dataset_name: str, split: str = "train") -> Dataset:
         """
         Load a dataset from HuggingFace Hub.
 

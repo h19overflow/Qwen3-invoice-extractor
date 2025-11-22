@@ -2,7 +2,7 @@
 Training configuration - Pydantic models for training parameters.
 
 Dependencies: pydantic
-Role: Defines all configurable training parameters.
+Role: Defines all configurable training hyperparameters and model settings.
 """
 
 from pydantic import BaseModel, Field
@@ -46,4 +46,4 @@ class TrainingConfig(BaseModel):
     export_dir: str = Field(default="qwen3_invoice_model")
 
     # Data
-    train_file: str = Field(default="train.jsonl")
+    train_file: str = Field(default="data/train.jsonl")

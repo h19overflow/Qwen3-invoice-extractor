@@ -1,18 +1,49 @@
 """
-Training module - Local fine-tuning with Unsloth.
+Training module - Qwen3 fine-tuning pipeline for invoice extraction.
 
-Handles dataset loading, data preparation, LoRA fine-tuning, and model export.
+Structure:
+    configs/  - Pydantic configuration models
+    utils/    - Shared utilities (prompt formatting, validation, HF loader)
+    phases/   - Training pipeline phases (data prep, training, export)
+
+Usage:
+    from src.training import TrainingDataPreparer, InvoiceModelTrainer, ModelExporter
+    from src.training import TrainingConfig, HuggingFaceDatasetLoader
 """
 
-from .config import TrainingConfig
-from .data_preparation import TrainingDataPreparer
-from .dataset_loader import HuggingFaceDatasetLoader, INVOICE_DATASETS
-from .trainer import InvoiceModelTrainer
+# Configs
+from .configs import TrainingConfig, LoRAConfig, DatasetInfo, INVOICE_DATASETS
+
+# Utils
+from .utils import (
+    SYSTEM_PROMPT,
+    format_from_messages,
+    format_inference_prompt,
+    DataValidator,
+    HuggingFaceDatasetLoader,
+)
+
+# Phases
+from .phases import (
+    TrainingDataPreparer,
+    InvoiceModelTrainer,
+    ModelExporter,
+)
 
 __all__ = [
-    "InvoiceModelTrainer",
+    # Configs
     "TrainingConfig",
-    "TrainingDataPreparer",
-    "HuggingFaceDatasetLoader",
+    "LoRAConfig",
+    "DatasetInfo",
     "INVOICE_DATASETS",
+    # Utils
+    "SYSTEM_PROMPT",
+    "format_from_messages",
+    "format_inference_prompt",
+    "DataValidator",
+    "HuggingFaceDatasetLoader",
+    # Phases
+    "TrainingDataPreparer",
+    "InvoiceModelTrainer",
+    "ModelExporter",
 ]
