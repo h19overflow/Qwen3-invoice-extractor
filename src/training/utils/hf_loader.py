@@ -10,7 +10,7 @@ from pathlib import Path
 from datasets import Dataset, load_dataset
 from huggingface_hub import HfApi, login
 
-from ..configs import DatasetInfo, INVOICE_DATASETS
+from ..configs import INVOICE_DATASETS, DatasetInfo
 
 
 class HuggingFaceDatasetLoader:
@@ -108,7 +108,7 @@ class HuggingFaceDatasetLoader:
         print(f"{'='*60}")
         print(f"Number of examples: {len(dataset)}")
         print(f"Columns: {dataset.column_names}")
-        print(f"\nSample examples:")
+        print("\nSample examples:")
 
         for i, example in enumerate(dataset.select(range(min(num_examples, len(dataset))))):
             print(f"\n--- Example {i+1} ---")

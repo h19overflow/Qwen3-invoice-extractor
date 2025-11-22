@@ -43,9 +43,9 @@ class ModelExporter:
         )
 
         print(f"\n✅ Phase 3 complete: Model exported to {export_path}")
-        print(f"\nNext steps:")
+        print("\nNext steps:")
         print(f"  1. Create tarball: tar -czvf model.tar.gz -C {export_path} .")
-        print(f"  2. Upload to S3: aws s3 cp model.tar.gz s3://your-bucket/")
-        print(f"  3. Deploy with SageMaker serverless endpoint")
+        print("  2. Upload to S3: aws s3 cp model.tar.gz s3://your-bucket/")
+        print("  3. Deploy with SageMaker serverless endpoint")
 
         return export_path

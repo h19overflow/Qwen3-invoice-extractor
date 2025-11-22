@@ -11,8 +11,8 @@ import argparse
 from pathlib import Path
 
 from src.training import (
-    HuggingFaceDatasetLoader,
     INVOICE_DATASETS,
+    HuggingFaceDatasetLoader,
     TrainingDataPreparer,
 )
 
