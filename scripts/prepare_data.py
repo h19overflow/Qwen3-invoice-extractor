@@ -24,8 +24,8 @@ def inspect_datasets() -> None:
     for info in INVOICE_DATASETS:
         print(f"\n📦 {info.name}")
         print(f"   Description: {info.description}")
-        print(f"   Text column: {info.text_column}")
-        print(f"   JSON column: {info.json_column}")
+        print(f"   Text source: {info.text_source}")
+        print(f"   JSON source: {info.json_source}")
 
         if loader.check_dataset_exists(info.name):
             print("   Status: ✅ Available")
@@ -34,7 +34,7 @@ def inspect_datasets() -> None:
 
     print("\n" + "=" * 40)
     print("To preview examples, run:")
-    print("  python -m scripts.prepare_data --inspect --preview <dataset_name>")
+    print("  python -m scripts.prepare_data --preview <dataset_name>")
 
 
 def preview_dataset(dataset_name: str, num_examples: int = 3) -> None:
@@ -65,8 +65,8 @@ def main() -> None:
         "--output",
         "-o",
         type=Path,
-        default=Path("train.jsonl"),
-        help="Output path for training JSONL file (default: train.jsonl)",
+        default=Path("data/train.jsonl"),
+        help="Output path for training JSONL file (default: data/train.jsonl)",
     )
     parser.add_argument(
         "--inspect",

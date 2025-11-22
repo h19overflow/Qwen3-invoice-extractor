@@ -5,11 +5,12 @@ Dependencies: datasets
 Role: Downloads and merges invoice datasets into ChatML train.jsonl format.
 
 Data Sources:
-    - GokulRajaR/invoice-ocr-json: Synthetic invoices (strict JSON structure)
-    - shubh303/Invoice-to-Json: Real/varied receipts (messy layouts, OCR noise)
+    - mychen76/invoices-and-receipts_ocr_v1: OCR text + parsed JSON
+    - shubh303/Invoice-to-Json: Question/answer format with JSON extraction
 """
 
 import json
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -20,45 +21,96 @@ class DatasetAdapter(ABC):
     """Interface for adapting different dataset formats to ChatML."""
 
     @abstractmethod
-    def get_text_column(self) -> str:
-        """Column name containing invoice text."""
-        pass
-
-    @abstractmethod
-    def get_json_column(self) -> str:
-        """Column name containing target JSON."""
-        pass
-
-    @abstractmethod
     def get_dataset_name(self) -> str:
         """HuggingFace dataset identifier."""
         pass
 
+    @abstractmethod
+    def extract_pair(self, row: dict) -> tuple[str | None, str | None]:
+        """
+        Extract (input_text, json_output) from a dataset row.
 
-class GokulRajaRAdapter(DatasetAdapter):
-    """Adapter for GokulRajaR/invoice-ocr-json dataset."""
+        Returns:
+            Tuple of (input_text, json_output) or (None, None) if invalid.
+        """
+        pass
 
-    def get_text_column(self) -> str:
-        return "ocr_text"
 
-    def get_json_column(self) -> str:
-        return "ground_truth"
+class MyChen76Adapter(DatasetAdapter):
+    """
+    Adapter for mychen76/invoices-and-receipts_ocr_v1 dataset.
+
+    Structure:
+        - raw_data: Contains OCR words in JSON format
+        - parsed_data: Contains structured JSON output
+    """
 
     def get_dataset_name(self) -> str:
-        return "GokulRajaR/invoice-ocr-json"
+        return "mychen76/invoices-and-receipts_ocr_v1"
+
+    def extract_pair(self, row: dict) -> tuple[str | None, str | None]:
+        raw_data = row.get("raw_data")
+        parsed_data = row.get("parsed_data")
+
+        if not raw_data or not parsed_data:
+            return None, None
+
+        try:
+            # Extract OCR words from raw_data JSON
+            raw_dict = json.loads(raw_data)
+            ocr_words = raw_dict.get("ocr_words", "")
+
+            # Parse the list string to get actual words
+            if isinstance(ocr_words, str) and ocr_words.startswith("["):
+                words_list = eval(ocr_words)  # Safe here - controlled data
+                input_text = " ".join(words_list)
+            else:
+                input_text = str(ocr_words)
+
+            # Extract JSON from parsed_data
+            parsed_dict = json.loads(parsed_data)
+            json_str = parsed_dict.get("json", "")
+
+            # The json field contains a string with single quotes - fix it
+            if isinstance(json_str, str):
+                # Replace single quotes with double quotes for valid JSON
+                json_str = json_str.replace("'", '"')
+                # Validate it's proper JSON
+                json.loads(json_str)
+                return input_text, json_str
+
+        except (json.JSONDecodeError, SyntaxError, TypeError):
+            pass
+
+        return None, None
 
 
 class Shubh303Adapter(DatasetAdapter):
-    """Adapter for shubh303/Invoice-to-Json dataset."""
+    """
+    Adapter for shubh303/Invoice-to-Json dataset.
 
-    def get_text_column(self) -> str:
-        return "text"
-
-    def get_json_column(self) -> str:
-        return "label"
+    Structure:
+        - question: Contains extraction instruction
+        - answer: Contains JSON output (sometimes with markdown fences)
+    """
 
     def get_dataset_name(self) -> str:
         return "shubh303/Invoice-to-Json"
+
+    def extract_pair(self, row: dict) -> tuple[str | None, str | None]:
+        question = row.get("question")
+        answer = row.get("answer")
+
+        if not question or not answer:
+            return None, None
+
+        # Clean markdown fences from answer
+        json_output = answer.strip()
+        json_output = re.sub(r"^```json\s*", "", json_output)
+        json_output = re.sub(r"\s*```$", "", json_output)
+
+        # Use the question as input (it describes what to extract)
+        return question.strip(), json_output.strip()
 
 
 class DataValidator:
@@ -107,7 +159,7 @@ class TrainingDataPreparer:
         adapters: list[DatasetAdapter] | None = None,
         validator: DataValidator | None = None,
     ) -> None:
-        self._adapters = adapters or [GokulRajaRAdapter(), Shubh303Adapter()]
+        self._adapters = adapters or [MyChen76Adapter(), Shubh303Adapter()]
         self._validator = validator or DataValidator()
 
     def _to_chatml(self, text: str, json_output: str) -> dict:
@@ -125,23 +177,19 @@ class TrainingDataPreparer:
         from datasets import load_dataset
 
         dataset_name = adapter.get_dataset_name()
-        text_col = adapter.get_text_column()
-        json_col = adapter.get_json_column()
-
         print(f"Loading {dataset_name}...")
 
         try:
             dataset = load_dataset(dataset_name, split="train")
         except Exception as e:
-            print(f"Failed to load {dataset_name}: {e}")
+            print(f"  Failed to load {dataset_name}: {e}")
             return []
 
         examples = []
         skipped = 0
 
         for row in dataset:
-            text = row.get(text_col)
-            json_output = row.get(json_col)
+            text, json_output = adapter.extract_pair(row)
 
             if self._validator.is_valid_example(text, json_output):
                 examples.append(self._to_chatml(text, json_output))
@@ -162,6 +210,10 @@ class TrainingDataPreparer:
             Path to created training file.
         """
         output_path = Path(output_path)
+
+        # Create parent directories if needed
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
         all_examples = []
 
         for adapter in self._adapters:

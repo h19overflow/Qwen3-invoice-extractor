@@ -5,14 +5,14 @@ Dependencies: huggingface_hub, datasets
 Role: Handles authentication and downloading of training datasets.
 
 Datasets:
-    - GokulRajaR/invoice-ocr-json: Synthetic invoices
-    - shubh303/Invoice-to-Json: Real receipts with OCR noise
+    - mychen76/invoices-and-receipts_ocr_v1: OCR text + parsed JSON
+    - shubh303/Invoice-to-Json: Question/answer format
 """
 
 from dataclasses import dataclass
 from pathlib import Path
 
-from datasets import Dataset, DatasetDict, load_dataset
+from datasets import Dataset, load_dataset
 from huggingface_hub import HfApi, login
 
 
@@ -21,24 +21,24 @@ class DatasetInfo:
     """Metadata for a HuggingFace dataset."""
 
     name: str
-    text_column: str
-    json_column: str
     description: str
+    text_source: str
+    json_source: str
 
 
 # Registry of supported datasets
 INVOICE_DATASETS: list[DatasetInfo] = [
     DatasetInfo(
-        name="GokulRajaR/invoice-ocr-json",
-        text_column="ocr_text",
-        json_column="ground_truth",
-        description="Synthetic invoices with strict JSON structure",
+        name="mychen76/invoices-and-receipts_ocr_v1",
+        description="OCR text from invoices with structured JSON output",
+        text_source="raw_data.ocr_words",
+        json_source="parsed_data.json",
     ),
     DatasetInfo(
         name="shubh303/Invoice-to-Json",
-        text_column="text",
-        json_column="label",
-        description="Real receipts with messy layouts and OCR noise",
+        description="Question/answer pairs for JSON extraction from receipts",
+        text_source="question",
+        json_source="answer",
     ),
 ]
 
@@ -147,6 +147,9 @@ class HuggingFaceDatasetLoader:
         for i, example in enumerate(dataset.select(range(min(num_examples, len(dataset))))):
             print(f"\n--- Example {i+1} ---")
             for key, value in example.items():
+                if key == "image":
+                    print(f"{key}: <image>")
+                    continue
                 preview = str(value)[:200] + "..." if len(str(value)) > 200 else str(value)
                 print(f"{key}: {preview}")
 
