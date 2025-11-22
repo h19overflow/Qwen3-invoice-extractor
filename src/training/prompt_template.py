@@ -9,7 +9,7 @@ SYSTEM_PROMPT = "You are a strict invoice parser. Output strictly valid JSON."
 CHATML_TEMPLATE = """<|im_start|>system
 {system}<|im_end|>
 <|im_start|>user
-{input}<|im_end|}
+{input}<|im_end|>
 <|im_start|>assistant
 {output}<|im_end|>"""
 
@@ -20,6 +20,28 @@ def format_training_example(input_text: str, output_text: str) -> str:
         system=SYSTEM_PROMPT,
         input=input_text,
         output=output_text
+    )
+
+
+def format_from_messages(messages: list[dict]) -> str:
+    """
+    Format ChatML messages list into training text.
+
+    Expected format:
+        [
+            {"role": "system", "content": "..."},
+            {"role": "user", "content": "..."},
+            {"role": "assistant", "content": "..."}
+        ]
+    """
+    system_content = messages[0]["content"]
+    user_content = messages[1]["content"]
+    assistant_content = messages[2]["content"]
+
+    return CHATML_TEMPLATE.format(
+        system=system_content,
+        input=user_content,
+        output=assistant_content
     )
 
 

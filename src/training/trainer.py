@@ -8,12 +8,15 @@ Role: Handles LoRA fine-tuning and model export for SageMaker.
 from pathlib import Path
 
 from .config import TrainingConfig
-from .prompt_template import format_training_example
+from .prompt_template import format_from_messages
 
 
 class InvoiceModelTrainer:
     """
     Fine-tunes Qwen3 for invoice extraction using LoRA.
+
+    Expects train.jsonl with ChatML messages format:
+        {"messages": [{"role": "system", ...}, {"role": "user", ...}, {"role": "assistant", ...}]}
 
     Exports merged model in FP16 for SageMaker deployment.
     """
@@ -45,16 +48,13 @@ class InvoiceModelTrainer:
         )
 
     def _prepare_dataset(self):
-        """Load and format training dataset."""
+        """Load and format training dataset with ChatML messages."""
         from datasets import load_dataset
 
         dataset = load_dataset("json", data_files=self.config.train_file, split="train")
 
         def formatting_func(examples):
-            texts = [
-                format_training_example(inp, out)
-                for inp, out in zip(examples["text_input"], examples["json_output"])
-            ]
+            texts = [format_from_messages(msg) for msg in examples["messages"]]
             return {"text": texts}
 
         return dataset.map(formatting_func, batched=True)

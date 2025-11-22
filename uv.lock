@@ -3193,12 +3193,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },
+    { name = "datasets" },
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "pdf2image" },
     { name = "pydantic" },
     { name = "pypdf" },
     { name = "pytesseract" },
+    { name = "sagemaker" },
 ]
 
 [package.optional-dependencies]
@@ -3211,6 +3213,7 @@ dev = [
 ]
 training = [
     { name = "datasets" },
+    { name = "huggingface-hub" },
     { name = "torch" },
     { name = "transformers" },
     { name = "trl" },
@@ -3220,7 +3223,9 @@ training = [
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.34.0" },
+    { name = "datasets", specifier = ">=4.4.1" },
     { name = "datasets", marker = "extra == 'training'", specifier = ">=2.18.0" },
+    { name = "huggingface-hub", marker = "extra == 'training'", specifier = ">=0.23.0" },
     { name = "langchain", specifier = ">=0.3.0" },
     { name = "langchain-community", specifier = ">=0.3.0" },
     { name = "pdf2image", specifier = ">=1.16.0" },
@@ -3229,6 +3234,7 @@ requires-dist = [
     { name = "pytesseract", specifier = ">=0.3.10" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4.0" },
+    { name = "sagemaker", specifier = ">=3.0.1" },
     { name = "sagemaker", marker = "extra == 'deployment'", specifier = ">=2.200.0" },
     { name = "torch", marker = "extra == 'training'", specifier = ">=2.1.0" },
     { name = "transformers", marker = "extra == 'training'", specifier = ">=4.40.0" },
