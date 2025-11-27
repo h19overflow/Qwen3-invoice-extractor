@@ -4,14 +4,18 @@
 
 This repository provides a complete pipeline for fine-tuning **Qwen3 0.6B-Instruct**, a state-of-the-art Small Language Model, to extract structured data from invoices. The fine-tuned model is designed to support another project focused on invoice structuring and processing.
 
+**Goal**: Achieve 99%+ accuracy on invoice extraction tasks through careful data preparation, fine-tuning, and validation.
+
 ## 🎯 Purpose
 
 This project fine-tunes a lightweight SLM (Small Language Model) to convert unstructured invoice text into structured JSON. The model is optimized for:
 
-- **High accuracy** (target: 99%+) on invoice extraction tasks
+- **High accuracy** (goal: 99%+) on invoice extraction tasks
 - **Cost-effective deployment** on serverless infrastructure
 - **Small model size** (<1GB) for fast inference
 - **Structured output** that integrates seamlessly with invoice processing systems
+
+**Note**: The 99%+ accuracy is a target goal. The training pipeline is designed to work towards this goal through iterative improvements in data quality, model architecture, and training procedures.
 
 The fine-tuned model serves as a critical component in a larger invoice structuring pipeline, enabling automated extraction of key fields like invoice numbers, dates, vendors, line items, and totals.
 
@@ -20,9 +24,11 @@ The fine-tuned model serves as a critical component in a larger invoice structur
 ```mermaid
 graph TB
     subgraph "Training Pipeline (Local GPU)"
-        A[Raw Invoice Datasets<br/>HuggingFace Hub] --> B[Phase 1: Data Preparation<br/>Download & Format]
-        B --> C[ChatML Training Data<br/>train.jsonl]
-        C --> D[Phase 2: Model Training<br/>Unsloth + LoRA]
+        A[Raw Invoice Datasets<br/>HuggingFace Hub] --> B[Phase 1: Data Preparation<br/>Download, Format & Split]
+        B --> C1[Training Data<br/>train.jsonl]
+        B --> C2[Validation Data<br/>val.jsonl]
+        C1 & C2 --> D[Phase 2: Model Training<br/>Unsloth + LoRA]
+        D -->|Periodic Eval| D
         D --> E[Fine-tuned Qwen3 0.6B<br/>with LoRA Adapters]
         E --> F[Phase 3: Export<br/>Merge & Convert to FP16]
         F --> G[Model Artifacts<br/>model.tar.gz]
@@ -43,7 +49,8 @@ graph TB
 
     style A fill:#b3e5fc,color:#000
     style B fill:#c5e1a5,color:#000
-    style C fill:#ffccbc,color:#000
+    style C1 fill:#ffccbc,color:#000
+    style C2 fill:#ffccbc,color:#000
     style D fill:#ce93d8,color:#000
     style E fill:#90caf9,color:#000
     style F fill:#a5d6a7,color:#000
@@ -265,6 +272,12 @@ qwen3-invoice-extractor/
 - AWS Account (for deployment)
 - HuggingFace account (for dataset access)
 
+**⚠️ Windows Users**: Unsloth requires `triton`, which doesn't support Windows. Use **WSL2** (Windows Subsystem for Linux) for training. 
+
+- **🎓 Beginner's Guide**: See [Complete Beginner's Guide](docs/complete_beginner_guide.md) - Full walkthrough with diagrams from setup to evaluation
+- **Quick Setup**: See [WSL2 Setup Guide](docs/wsl_setup.md) for basic setup
+- **Complete Guide**: See [Complete WSL2 Guide A-Z](docs/wsl_complete_guide.md) for comprehensive instructions covering installation, troubleshooting, and best practices
+
 ### Installation
 
 ```bash
@@ -341,7 +354,7 @@ The extracted structured data is validated using Pydantic schemas and can be dir
 | **Sequence Length** | 2048 tokens |
 | **Deployment** | SageMaker Serverless (3GB memory) |
 | **Inference Cost** | ~$0.00006/second |
-| **Target Accuracy** | 99%+ on invoice extraction |
+| **Target Accuracy** | 99%+ on invoice extraction (goal, not yet achieved) |
 
 ## 🧪 Data Sources
 

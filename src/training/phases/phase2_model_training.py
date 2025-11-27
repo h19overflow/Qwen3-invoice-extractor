@@ -156,7 +156,7 @@ class InvoiceModelTrainer:
                 # Learning rate schedule
                 lr_scheduler_type="cosine",
                 # Evaluation settings
-                evaluation_strategy="steps" if eval_dataset else "no",
+                eval_strategy="steps" if eval_dataset else "no",
                 eval_steps=self.config.eval_steps if eval_dataset else None,
                 save_strategy="steps",
                 save_steps=self.config.save_steps,
