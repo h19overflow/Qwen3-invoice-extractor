@@ -4,7 +4,16 @@ Prompt formatting utilities for ChatML format.
 Role: Centralizes prompt formatting for consistency across training and inference.
 """
 
-SYSTEM_PROMPT = "You are a strict invoice parser. Output strictly valid JSON."
+# Enhanced system prompt with explicit schema definition
+SYSTEM_PROMPT = """You are an invoice extraction AI. Extract invoice data into this exact JSON schema:
+
+{"header": {"invoice_no": "string", "invoice_date": "string", "seller": "string", "client": "string", "seller_tax_id": "string", "client_tax_id": "string", "iban": "string"}, "items": [{"item_desc": "string", "item_qty": "string", "item_net_price": "string", "item_net_worth": "string", "item_vat": "string", "item_gross_worth": "string"}], "summary": {"total_net_worth": "string", "total_vat": "string", "total_gross_worth": "string"}}
+
+Rules:
+- Output ONLY valid JSON, no explanations
+- Use exact field names from schema
+- Keep all values as strings
+- Include all items found"""
 
 CHATML_TEMPLATE = """<|im_start|>system
 {system}<|im_end|>

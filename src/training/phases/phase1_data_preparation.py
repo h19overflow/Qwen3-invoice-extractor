@@ -10,6 +10,7 @@ Data Sources:
 """
 
 import json
+import random
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -167,12 +168,17 @@ class TrainingDataPreparer:
         print(f"  Loaded {len(examples)} examples, skipped {skipped} invalid")
         return examples
 
-    def prepare(self, output_path: str | Path = "data/train.jsonl") -> Path:
+    def prepare(
+        self,
+        output_path: str | Path = "data/train.jsonl",
+        val_size: float = 0.0
+    ) -> Path:
         """
-        Execute Phase 1: Download datasets and create train.jsonl.
+        Execute Phase 1: Download datasets and create train.jsonl (and optionally val.jsonl).
 
         Args:
             output_path: Path for output JSONL file.
+            val_size: Fraction of data to use for validation (0.0 to 1.0).
 
         Returns:
             Path to created training file.
@@ -186,11 +192,31 @@ class TrainingDataPreparer:
             examples = self._load_and_convert(adapter)
             all_examples.extend(examples)
 
-        print(f"\nTotal training examples: {len(all_examples)}")
+        print(f"\nTotal examples gathered: {len(all_examples)}")
+
+        # Shuffle and split
+        if val_size > 0:
+            random.shuffle(all_examples)
+            split_idx = int(len(all_examples) * (1 - val_size))
+            train_examples = all_examples[:split_idx]
+            val_examples = all_examples[split_idx:]
+            
+            # Define validation path
+            val_path = output_path.with_name("val.jsonl")
+            print(f"Splitting data: {len(train_examples)} train, {len(val_examples)} validation")
+            
+            # Write validation file
+            with open(val_path, "w", encoding="utf-8") as f:
+                for example in val_examples:
+                    f.write(json.dumps(example, ensure_ascii=False) + "\n")
+            print(f"  Saved validation data to {val_path}")
+        else:
+            train_examples = all_examples
+            print(f"Using all {len(train_examples)} examples for training")
 
         with open(output_path, "w", encoding="utf-8") as f:
-            for example in all_examples:
+            for example in train_examples:
                 f.write(json.dumps(example, ensure_ascii=False) + "\n")
 
-        print(f"✅ Phase 1 complete: Saved to {output_path}")
+        print(f"✅ Phase 1 complete: Saved training data to {output_path}")
         return output_path
