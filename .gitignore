@@ -8,3 +8,20 @@ wheels/
 
 # Virtual environments
 .venv
+.venv-wsl
+.env
+
+# Accidental output files (from pip install redirects)
+=*
+
+# Pip installer script (shouldn't be in repo)
+get-pip.py
+
+# MLflow tracking
+mlruns/
+
+# Training outputs (keep checkpoints, but ignore intermediate files)
+outputs/*/optimizer.pt
+outputs/*/scheduler.pt
+outputs/*/rng_state.pth
+outputs/*/trainer_state.json

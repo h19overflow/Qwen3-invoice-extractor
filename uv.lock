@@ -3201,6 +3201,7 @@ dependencies = [
     { name = "pypdf" },
     { name = "pytesseract" },
     { name = "sagemaker" },
+    { name = "unsloth" },
 ]
 
 [package.optional-dependencies]
@@ -3214,10 +3215,14 @@ dev = [
 training = [
     { name = "datasets" },
     { name = "huggingface-hub" },
-    { name = "torch" },
     { name = "transformers" },
     { name = "trl" },
     { name = "unsloth" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -3236,12 +3241,15 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4.0" },
     { name = "sagemaker", specifier = ">=3.0.1" },
     { name = "sagemaker", marker = "extra == 'deployment'", specifier = ">=2.200.0" },
-    { name = "torch", marker = "extra == 'training'", specifier = ">=2.1.0" },
     { name = "transformers", marker = "extra == 'training'", specifier = ">=4.40.0" },
     { name = "trl", marker = "extra == 'training'", specifier = ">=0.8.0" },
+    { name = "unsloth", specifier = ">=2024.8" },
     { name = "unsloth", marker = "extra == 'training'", specifier = ">=2024.0" },
 ]
 provides-extras = ["training", "deployment", "dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.14.6" }]
 
 [[package]]
 name = "referencing"
